@@ -1,0 +1,35 @@
+# CE-LSTM (Consensus-Entropy LSTM) model + training configuration (non-secret).
+# Adapted from the Hive Mind Neural Network (HMNN) paper — see docs/ml/celstm.md
+# and docs/ml/feature-contract.md for the source-signal mapping.
+
+model:
+  name: celstm-v1
+  registry_dir: ./.models
+  device: cpu
+
+architecture:
+  sequence_length: 8 # max satellite-image "rounds" per hotspot fed to the model
+  num_structured_sources: 4 # thermal, facility_proximity, persistence, weather — see ml/features/source_signals.py
+  vision_embedding_dim: 512 # dim of the vision encoder's output embedding (5th, learned source)
+  hive_dim: 32 # H — hive memory dimension, per the paper's default
+  dropout: 0.1 # applied only in the vision projection head — the analytic modules have no dropout
+  num_classes: 4 # gas_flare, industrial_fire, wildfire, unknown
+
+training:
+  # Optimiser/LR/epochs mirror the paper's Table 2 (Adam, lr=0.001, 100 epochs);
+  # weight_decay and early stopping are additions beyond the paper for this
+  # smaller, noisier real-world dataset.
+  batch_size: 32
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  max_epochs: 100
+  early_stopping_patience: 10
+  val_split: 0.2
+  seed: 42
+
+evaluation:
+  metrics: [accuracy, precision, recall, f1_macro, confusion_matrix]
+  risk_thresholds:
+    low: 0.25
+    medium: 0.5
+    high: 0.75

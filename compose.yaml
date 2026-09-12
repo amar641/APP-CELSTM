@@ -1,0 +1,54 @@
+name: industrial-fire-ai
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: iface-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-industrial_fire}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-industrial_fire}
+      POSTGRES_DB: ${POSTGRES_DB:-industrial_fire}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-industrial_fire}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:v1.11.4
+    container_name: iface-qdrant
+    restart: unless-stopped
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iface-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-industrial_fire}:${POSTGRES_PASSWORD:-industrial_fire}@postgres:5432/${POSTGRES_DB:-industrial_fire}
+      QDRANT_URL: http://qdrant:6333
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    command: ["uvicorn", "industrial_fire.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+volumes:
+  postgres_data:
+  qdrant_data:

@@ -1,0 +1,26 @@
+# Data-source specific configuration (non-secret).
+
+firms:
+  base_url: https://firms.modaps.eosdis.nasa.gov/api/area/csv
+  default_source: VIIRS_SNPP_NRT
+  allowed_sources: [VIIRS_SNPP_NRT, VIIRS_NOAA20_NRT, MODIS_NRT]
+
+osm:
+  overpass_url: https://overpass-api.de/api/interpreter
+  facility_tags:
+    - "man_made=works"
+    - "industrial=refinery"
+    - "power=plant"
+    - "landuse=industrial"
+    - "man_made=petroleum_well"
+
+weather:
+  provider: open-meteo
+  variables: [temperature_2m, wind_speed_10m, wind_direction_10m, relative_humidity_2m]
+
+satellite:
+  stac_api_url: https://earth-search.aws.element84.com/v1
+  collection: sentinel-2-l2a
+  max_cloud_cover_pct: 20
+  bands: [B04, B03, B02, B08] # red, green, blue, NIR
+  footprint_radius_km: 0.5 # auto-derived search area around each hotspot's own coordinates (0.5km radius = ~1km x 1km box)

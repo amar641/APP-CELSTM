@@ -1,0 +1,26 @@
+# Non-secret application configuration.
+# Secrets (keys, passwords, URLs with credentials) live in .env only —
+# never in these files. See src/industrial_fire/core/config.py for how
+# this is merged with environment variables.
+
+app:
+  name: industrial-fire-ai
+  api_prefix: /api/v1
+
+aoi:
+  # Default area of interest; overridden by AOI_BBOX env var at runtime.
+  bbox: [68.0, 20.0, 78.0, 28.0] # west, south, east, north
+
+ingestion:
+  firms:
+    history_days: 7
+    poll_interval_minutes: 60
+  osm:
+    refresh_interval_hours: 24
+  weather:
+    refresh_interval_minutes: 30
+
+enrichment:
+  facility_proximity_km: 5.0
+  same_hotspot_radius_km: 2.0
+  persistence_window_days: 7
