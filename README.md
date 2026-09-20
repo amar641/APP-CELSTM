@@ -67,11 +67,25 @@ uv run alembic upgrade head
 ### Run the API
 
 ```bash
-uv run uvicorn industrial_fire.api.main:app --reload
+uv run python -m industrial_fire.api.main
 ```
 
-Open http://127.0.0.1:8000/docs for interactive API docs, or
-http://127.0.0.1:8000/api/v1/events for classified thermal events.
+Starting the API also starts the continuous background pipeline (FIRMS
+polling -> per-hotspot OSM/weather/satellite ingestion -> CE-LSTM +
+XGBoost classification -> risk scoring — see
+[docs/architecture/data-flow.md](docs/architecture/data-flow.md)); it
+keeps running for as long as the process does, with no separate worker.
+
+Open http://127.0.0.1:8000/ for the GIS dashboard (build it first — see
+[frontend/README.md](frontend/README.md)), http://127.0.0.1:8000/docs
+for interactive API docs, or http://127.0.0.1:8000/api/v1/events for
+classified thermal events.
+
+Use `uv run uvicorn industrial_fire.api.main:app --reload` instead only
+for autoreload during route-level development on Linux/macOS — on
+Windows it breaks the DB connection (see the module docstring in
+`api/main.py`), and either way it does not restart the background
+pipeline task on reload.
 
 ### Run tests / lint / typecheck
 

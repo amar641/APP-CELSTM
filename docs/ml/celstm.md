@@ -103,3 +103,7 @@ split, and excluded-unavailable-sources — all verified in
 real labeled data yet — see [dataset.md](dataset.md) and
 [evaluation.md](evaluation.md) for the promotion bar before this replaces
 the rule-based classifier as the default.
+
+Runs alongside — not instead of — a second classifier, XGBoost (see
+[xgboost.md](xgboost.md)): the continuous pipeline classifies every
+hotspot with both, independently, and the dashboard shows both results.

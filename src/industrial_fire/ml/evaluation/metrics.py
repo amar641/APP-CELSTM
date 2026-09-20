@@ -34,3 +34,14 @@ def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> dict
         "f1_macro": f1_score(all_labels, all_preds, average="macro", zero_division=0),
         "confusion_matrix": confusion_matrix(all_labels, all_preds).tolist(),
     }
+
+
+def evaluate_sklearn(y_true: list[int], y_pred: list[int]) -> dict:
+    """Same metric set as `evaluate`, for non-PyTorch (sklearn-API) classifiers like XGBoost."""
+    return {
+        "accuracy": accuracy_score(y_true, y_pred),
+        "precision_macro": precision_score(y_true, y_pred, average="macro", zero_division=0),
+        "recall_macro": recall_score(y_true, y_pred, average="macro", zero_division=0),
+        "f1_macro": f1_score(y_true, y_pred, average="macro", zero_division=0),
+        "confusion_matrix": confusion_matrix(y_true, y_pred).tolist(),
+    }

@@ -40,3 +40,4 @@ class ModelSource(str, Enum):
 
     RULE_BASED_V1 = "rule_based_v1"
     CELSTM_V1 = "celstm_v1"
+    XGBOOST_V1 = "xgboost_v1"

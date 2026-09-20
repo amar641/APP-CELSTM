@@ -29,6 +29,16 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
+  adminer:
+    image: adminer:4.8.1
+    container_name: iface-adminer
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build:
       context: .
@@ -47,7 +57,7 @@ services:
         condition: service_healthy
       qdrant:
         condition: service_started
-    command: ["uvicorn", "industrial_fire.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["python", "-m", "industrial_fire.api.main"]
 
 volumes:
   postgres_data:

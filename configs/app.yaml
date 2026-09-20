@@ -9,16 +9,24 @@ app:
 
 aoi:
   # Default area of interest; overridden by AOI_BBOX env var at runtime.
-  bbox: [68.0, 20.0, 78.0, 28.0] # west, south, east, north
+  bbox: [68.0, 20.0, 78.0, 34.0] # west, south, east, north
 
 ingestion:
   firms:
     history_days: 7
-    poll_interval_minutes: 60
+    poll_interval_minutes: 60 # used by the manual scripts/ingest/ingest_firms.py, not the continuous pipeline below
   osm:
-    refresh_interval_hours: 24
+    refresh_interval_hours: 24 # manual whole-AOI refresh only (POST /facilities/refresh) — see ingestion.pipeline
   weather:
     refresh_interval_minutes: 30
+  # The continuous, in-process pipeline (application.pipeline.continuous_pipeline)
+  # started from FastAPI's lifespan. It polls FIRMS for new hotspots and, for
+  # each genuinely new one, ingests OSM/weather scoped to that hotspot's own
+  # small bounding box only — never the whole AOI.
+  pipeline:
+    poll_interval_seconds: 120
+    facility_search_radius_km: 10.0
+    weather_search_radius_km: 25.0
 
 enrichment:
   facility_proximity_km: 5.0

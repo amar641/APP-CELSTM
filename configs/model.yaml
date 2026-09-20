@@ -33,3 +33,18 @@ evaluation:
     low: 0.25
     medium: 0.5
     high: 0.75
+
+# XGBoost — the second classifier, run alongside CE-LSTM (not instead of it).
+# See docs/ml/xgboost.md.
+xgboost:
+  architecture:
+    vision_embedding_dim: 512
+    vision_pooled_dim: 32 # deterministic mean-pool of the vision embedding — see ml/features/vision_pooling.py
+    n_estimators: 200
+    max_depth: 4
+    learning_rate: 0.05
+    subsample: 0.8
+    colsample_bytree: 0.8
+  training:
+    val_split: 0.2
+    seed: 42

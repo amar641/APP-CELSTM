@@ -9,11 +9,20 @@ coexist during a breaking change.
 | Method | Path | Description |
 |---|---|---|
 | GET | `/api/v1/health` | Liveness check |
-| GET | `/api/v1/events` | Pulls today's FIRMS detections for the AOI, enriches, classifies, scores risk; sorted highest-risk first |
+| GET | `/api/v1/events` | Reads already-ingested/classified events from Postgres (the continuous pipeline keeps this current — see [data-flow.md](../architecture/data-flow.md)); `days_back` filters on `acquired_at`. Sorted highest-risk first. Each event carries a `classifications` list — one entry per model that has run (CELSTM, XGBoost, or the rule-based fallback) |
+| GET | `/api/v1/events/{id}` | Full detail for one event: fire representation, satellite evidence, temporal history, and the same `classifications` list — backs the dashboard's click panel |
 | GET | `/api/v1/facilities` | Facilities already ingested into Postgres, within the AOI |
-| POST | `/api/v1/facilities/refresh` | Re-fetches facilities from OSM/Overpass and upserts |
+| POST | `/api/v1/facilities/refresh` | Re-fetches facilities from OSM/Overpass and upserts (manual, whole-AOI — the continuous pipeline only ever ingests facilities/weather scoped to a single hotspot) |
+| GET | `/api/v1/aoi` | The configured AOI as a GeoJSON polygon (from `AOI_BBOX`), for the dashboard's boundary overlay |
+| GET | `/api/v1/pipeline/status` | Continuous-pipeline health: last poll time, hotspots processed, last error |
 
 Interactive docs at `/docs` (Swagger) and `/redoc`.
+
+**Note**: `/events` and `/events/{id}` no longer trigger live ingestion —
+that's now the continuous background pipeline's job
+(`application.pipeline.continuous_pipeline.ContinuousPipeline`, started
+from `api/main.py`'s lifespan). These routes are now cheap, poll-friendly
+DB reads.
 
 ## Composition root
 
@@ -45,8 +54,9 @@ entities — the API's wire format is allowed to diverge from the domain
 model (e.g. flattening `Coordinates` into `latitude`/`longitude` fields)
 without that leaking into `domain`.
 
-## Future: GIS dashboard
+## GIS dashboard
 
-`frontend/` is a placeholder for a Leaflet/Mapbox dashboard that consumes
-`/api/v1/events` and `/api/v1/facilities` directly — no separate
-backend-for-frontend is planned; the dashboard is a pure client of this API.
+`frontend/` is a MapLibre GL JS + Vite dashboard, built and served
+directly by this app (`StaticFiles` mount in `api/main.py`) — no separate
+frontend service or backend-for-frontend. It's a pure client of the API
+above; see [frontend/README.md](../../frontend/README.md).

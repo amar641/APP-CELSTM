@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from industrial_fire.core.types import ClassificationLabel, ModelSource, RiskLevel
@@ -26,6 +26,11 @@ def _result_to_entity(row: ClassificationResultModel) -> ClassificationResult:
         reasoning=row.reasoning,
         model_source=ModelSource(row.model_source),
         model_version=row.model_version,
+        is_abnormal=row.is_abnormal,
+        model_precision=row.model_precision,
+        model_recall=row.model_recall,
+        model_accuracy=row.model_accuracy,
+        model_f1_macro=row.model_f1_macro,
         classified_at=row.classified_at,
     )
 
@@ -55,6 +60,11 @@ class SqlClassificationRepository(ClassificationRepository):
             reasoning=result.reasoning,
             model_source=result.model_source.value,
             model_version=result.model_version,
+            is_abnormal=result.is_abnormal,
+            model_precision=result.model_precision,
+            model_recall=result.model_recall,
+            model_accuracy=result.model_accuracy,
+            model_f1_macro=result.model_f1_macro,
             classified_at=result.classified_at,
         )
         self._session.add(row)
@@ -96,3 +106,28 @@ class SqlClassificationRepository(ClassificationRepository):
         result = await self._session.execute(stmt)
         row = result.scalar_one_or_none()
         return _risk_to_entity(row) if row else None
+
+    async def exists_for_event(self, thermal_event_id: UUID) -> bool:
+        stmt = select(
+            exists().where(ClassificationResultModel.thermal_event_id == thermal_event_id)
+        )
+        result = await self._session.execute(stmt)
+        return bool(result.scalar())
+
+    async def list_for_event(self, thermal_event_id: UUID) -> list[ClassificationResult]:
+        stmt = (
+            select(ClassificationResultModel)
+            .where(ClassificationResultModel.thermal_event_id == thermal_event_id)
+            .order_by(ClassificationResultModel.classified_at.desc())
+        )
+        result = await self._session.execute(stmt)
+        return [_result_to_entity(row) for row in result.scalars().all()]
+
+    async def list_risk_for_event(self, thermal_event_id: UUID) -> list[RiskAssessment]:
+        stmt = (
+            select(RiskAssessmentModel)
+            .where(RiskAssessmentModel.thermal_event_id == thermal_event_id)
+            .order_by(RiskAssessmentModel.assessed_at.desc())
+        )
+        result = await self._session.execute(stmt)
+        return [_risk_to_entity(row) for row in result.scalars().all()]

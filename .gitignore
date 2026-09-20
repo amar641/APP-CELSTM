@@ -40,6 +40,10 @@ mlruns/
 # Docker volumes mounted locally (if any)
 .docker/
 
+# Frontend (frontend/dist already covered by dist/ above; frontend/package-lock.json is committed)
+node_modules/
+*.tsbuildinfo
+
 # IDE
 .vscode/
 .idea/

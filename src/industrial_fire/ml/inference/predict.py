@@ -17,6 +17,7 @@ API never breaks waiting on a model that hasn't been trained yet.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -55,6 +56,13 @@ def _latest_checkpoint(registry_dir: str) -> Path | None:
     return candidates[0] if candidates else None
 
 
+def _load_metrics(checkpoint_dir: Path) -> dict:
+    metrics_path = checkpoint_dir / "metrics.json"
+    if not metrics_path.exists():
+        return {}
+    return json.loads(metrics_path.read_text())
+
+
 class CELSTMClassifier(ClassificationStrategy):
     def __init__(
         self,
@@ -72,11 +80,13 @@ class CELSTMClassifier(ClassificationStrategy):
         checkpoint_dir = _latest_checkpoint(registry_dir)
         self._model: CELSTM | None = None
         self._model_version = "none"
+        self._metrics: dict = {}
         if checkpoint_dir is not None:
             self._model = CELSTM(model_config).to(self._device)
             self._model.load_state_dict(torch.load(checkpoint_dir / "model.pt", map_location=self._device))
             self._model.eval()
             self._model_version = checkpoint_dir.name
+            self._metrics = _load_metrics(checkpoint_dir)
         else:
             logger.warning(
                 "no CELSTM checkpoint found in %s — falling back to rule-based classifier", registry_dir
@@ -107,6 +117,10 @@ class CELSTMClassifier(ClassificationStrategy):
             reasoning=reasoning,
             model_source=ModelSource.CELSTM_V1,
             model_version=self._model_version,
+            model_precision=self._metrics.get("precision_macro"),
+            model_recall=self._metrics.get("recall_macro"),
+            model_accuracy=self._metrics.get("accuracy"),
+            model_f1_macro=self._metrics.get("f1_macro"),
         )
 
     @torch.no_grad()

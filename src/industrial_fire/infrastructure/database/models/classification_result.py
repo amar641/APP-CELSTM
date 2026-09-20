@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ARRAY, DateTime, Float, ForeignKey, String
+from sqlalchemy import ARRAY, Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -22,6 +22,11 @@ class ClassificationResultModel(Base):
     reasoning: Mapped[str] = mapped_column(String, nullable=False)
     model_source: Mapped[str] = mapped_column(String(32), nullable=False)
     model_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    is_abnormal: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    model_precision: Mapped[float | None] = mapped_column(Float, nullable=True)
+    model_recall: Mapped[float | None] = mapped_column(Float, nullable=True)
+    model_accuracy: Mapped[float | None] = mapped_column(Float, nullable=True)
+    model_f1_macro: Mapped[float | None] = mapped_column(Float, nullable=True)
     classified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 

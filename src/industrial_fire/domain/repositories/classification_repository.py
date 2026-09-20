@@ -23,3 +23,15 @@ class ClassificationRepository(ABC):
     @abstractmethod
     async def latest_risk_for_event(self, thermal_event_id: UUID) -> RiskAssessment | None:
         ...
+
+    @abstractmethod
+    async def exists_for_event(self, thermal_event_id: UUID) -> bool:
+        """True once at least one classifier has produced a result for this event — the pipeline's "already processed" gate."""
+
+    @abstractmethod
+    async def list_for_event(self, thermal_event_id: UUID) -> list[ClassificationResult]:
+        """Every classification result for this event (one per model_source that has run) — most recent first."""
+
+    @abstractmethod
+    async def list_risk_for_event(self, thermal_event_id: UUID) -> list[RiskAssessment]:
+        """Every risk assessment for this event, one per classification result."""

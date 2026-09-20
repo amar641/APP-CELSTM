@@ -1,0 +1,435 @@
+/* Old-school GIS monitoring console: dense, flat, monochrome-terminal.
+   No gradients, no border-radius, no box-shadow/blur, no animation beyond
+   a plain blink on the live-status dot. */
+
+:root {
+  --bg: #0a0d0a;
+  --panel-bg: #10140f;
+  --panel-bg-alt: #0d100c;
+  --border: #33402f;
+  --border-bright: #4a5c43;
+  --text: #c9d6bf;
+  --text-dim: #7c8a74;
+  --text-bright: #eaf2e2;
+  --accent: #7fbf5a;
+
+  --risk-critical: #ff4d4d;
+  --risk-high: #ff9c33;
+  --risk-medium: #e6c14d;
+  --risk-low: #4dae62;
+  --risk-none: #5a6a54;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* `#rail-default`/`#rail-detail` set `display: flex` by ID below, which (being
+   an author rule) outranks the UA stylesheet's `[hidden] { display: none }`
+   regardless of specificity — so toggling the `hidden` attribute alone
+   wouldn't actually hide either panel without this. */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, "Consolas", "SFMono-Regular", "Courier New", monospace;
+  font-size: 13px;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ---- top bar ------------------------------------------------------- */
+
+#topbar {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--panel-bg-alt);
+  border-bottom: 1px solid var(--border-bright);
+}
+
+.topbar-title {
+  color: var(--text-bright);
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.topbar-status {
+  color: var(--text-dim);
+}
+
+/* ---- main layout: map 65-70%, side rail fixed ----------------------- */
+
+#layout {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+}
+
+#map-pane {
+  flex: 1 1 68%;
+  position: relative;
+  border-right: 1px solid var(--border-bright);
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+}
+
+#side-rail {
+  flex: 0 0 32%;
+  max-width: 380px;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+#rail-default {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ---- panels ---------------------------------------------------------- */
+
+.panel {
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-bright);
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.panel-body {
+  padding: 8px 10px;
+}
+
+#hotspot-list-panel {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+#hotspot-count {
+  color: var(--text-dim);
+  font-weight: normal;
+}
+
+#days-back-select {
+  margin-left: auto;
+  background: var(--panel-bg-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 1px 2px;
+}
+
+/* ---- legend ------------------------------------------------------- */
+
+.legend-group {
+  margin-bottom: 10px;
+}
+
+.legend-label {
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.6;
+  font-size: 12px;
+}
+
+.dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--border-bright);
+}
+
+.risk-critical {
+  background: var(--risk-critical);
+}
+.risk-high {
+  background: var(--risk-high);
+}
+.risk-medium {
+  background: var(--risk-medium);
+}
+.risk-low {
+  background: var(--risk-low);
+}
+.facility-dot {
+  background: #d4b83c;
+  border-radius: 0;
+}
+
+.glyph {
+  display: inline-block;
+  width: 14px;
+  text-align: center;
+  color: var(--text-bright);
+}
+
+.ring {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--risk-high);
+  border-radius: 50%;
+}
+
+.line {
+  display: inline-block;
+  width: 16px;
+  height: 0;
+  border-top: 1px dashed var(--text-dim);
+}
+
+/* ---- hotspot table -------------------------------------------------- */
+
+.table-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel-bg);
+  text-align: left;
+  color: var(--text-dim);
+  font-weight: normal;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody td {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: var(--panel-bg);
+}
+
+tbody tr.selected {
+  background: var(--panel-bg-alt);
+  outline: 1px solid var(--border-bright);
+}
+
+.risk-tag {
+  padding: 0 4px;
+  border: 1px solid;
+  font-weight: bold;
+}
+
+.risk-tag.risk-critical {
+  color: var(--risk-critical);
+  border-color: var(--risk-critical);
+  background: transparent;
+}
+.risk-tag.risk-high {
+  color: var(--risk-high);
+  border-color: var(--risk-high);
+  background: transparent;
+}
+.risk-tag.risk-medium {
+  color: var(--risk-medium);
+  border-color: var(--risk-medium);
+  background: transparent;
+}
+.risk-tag.risk-low {
+  color: var(--risk-low);
+  border-color: var(--risk-low);
+  background: transparent;
+}
+
+/* ---- event detail panel --------------------------------------------- */
+
+#rail-detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.text-btn {
+  background: transparent;
+  border: 1px solid var(--border-bright);
+  color: var(--text-bright);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+
+.text-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.detail-section {
+  margin-bottom: 12px;
+}
+
+.detail-section-title {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-size: 11px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  padding-bottom: 2px;
+}
+
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  line-height: 1.7;
+  border-bottom: 1px dotted var(--border);
+}
+
+.kv-row .k {
+  color: var(--text-dim);
+}
+
+.kv-row .v {
+  color: var(--text-bright);
+  text-align: right;
+}
+
+.reasoning-block {
+  margin-top: 4px;
+  padding: 6px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.model-card {
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.model-card-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 6px;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--text-bright);
+}
+
+.model-card-body {
+  padding: 6px;
+}
+
+.metric-row {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.metric-row span {
+  color: var(--text);
+}
+
+/* ---- status bar ------------------------------------------------------ */
+
+#statusbar {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  background: var(--panel-bg-alt);
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  margin-right: 4px;
+  animation: blink 1.6s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---- maplibre chrome, muted to match the console ---------------------- */
+
+.maplibregl-ctrl-attrib {
+  background: rgba(10, 13, 10, 0.7) !important;
+  color: var(--text-dim) !important;
+  font-size: 10px !important;
+}
+
+.maplibregl-popup-content {
+  background: var(--panel-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border-bright) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  padding: 6px 8px !important;
+}
+
+.maplibregl-popup-tip {
+  display: none !important;
+}

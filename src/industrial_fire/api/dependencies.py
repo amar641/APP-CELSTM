@@ -23,19 +23,24 @@ from industrial_fire.application.enrichment.spatial_enrichment import SpatialEnr
 from industrial_fire.application.feature_assembly.assemble_features import AssembleFeaturesUseCase
 from industrial_fire.application.ingestion.ingest_facilities import IngestFacilitiesUseCase
 from industrial_fire.application.ingestion.ingest_thermal_events import IngestThermalEventsUseCase
+from industrial_fire.application.pipeline.continuous_pipeline import ContinuousPipeline
 from industrial_fire.application.risk.assess_risk import AssessRiskUseCase
 from industrial_fire.core.config import Settings, get_settings
 from industrial_fire.infrastructure.database.repositories.classification_repository import (
     SqlClassificationRepository,
 )
-from industrial_fire.infrastructure.database.repositories.facility_repository import SqlFacilityRepository
+from industrial_fire.infrastructure.database.repositories.facility_repository import (
+    SqlFacilityRepository,
+)
 from industrial_fire.infrastructure.database.repositories.satellite_image_repository import (
     SqlSatelliteImageRepository,
 )
 from industrial_fire.infrastructure.database.repositories.thermal_event_repository import (
     SqlThermalEventRepository,
 )
-from industrial_fire.infrastructure.database.repositories.weather_repository import SqlWeatherRepository
+from industrial_fire.infrastructure.database.repositories.weather_repository import (
+    SqlWeatherRepository,
+)
 from industrial_fire.infrastructure.database.session import get_session
 from industrial_fire.infrastructure.firms.client import FirmsClient
 from industrial_fire.infrastructure.osm.overpass_client import OverpassFacilityProvider
@@ -156,3 +161,12 @@ def get_ingest_facilities_use_case(
     facility_repository: Annotated[SqlFacilityRepository, Depends(get_facility_repository)],
 ) -> IngestFacilitiesUseCase:
     return IngestFacilitiesUseCase(facility_provider, facility_repository)
+
+
+@lru_cache
+def get_continuous_pipeline() -> ContinuousPipeline:
+    """
+    The background pipeline singleton — built once, started from `api/main.py`'s
+    lifespan on startup, read from by `GET /api/v1/pipeline/status`.
+    """
+    return ContinuousPipeline.build(get_settings())

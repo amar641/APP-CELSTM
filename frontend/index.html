@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Industrial Fire AI — GIS Console</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <div class="topbar-title">INDUSTRIAL FIRE AI :: GIS MONITORING CONSOLE</div>
+        <div class="topbar-status" id="pipeline-status">&gt; connecting to pipeline...</div>
+      </header>
+      <main id="layout">
+        <section id="map-pane">
+          <div id="map"></div>
+        </section>
+        <aside id="side-rail">
+          <div id="rail-default">
+            <section class="panel" id="legend-panel">
+              <div class="panel-header">LEGEND</div>
+              <div class="panel-body">
+                <div class="legend-group">
+                  <div class="legend-label">RISK LEVEL (color)</div>
+                  <div class="legend-row"><span class="dot risk-critical"></span> CRITICAL</div>
+                  <div class="legend-row"><span class="dot risk-high"></span> HIGH</div>
+                  <div class="legend-row"><span class="dot risk-medium"></span> MEDIUM</div>
+                  <div class="legend-row"><span class="dot risk-low"></span> LOW</div>
+                </div>
+                <div class="legend-group">
+                  <div class="legend-label">CLASSIFICATION (shape)</div>
+                  <div class="legend-row"><span class="glyph">&#9650;</span> WILDFIRE</div>
+                  <div class="legend-row"><span class="glyph">&#9670;</span> POTENTIAL IND. FIRE</div>
+                  <div class="legend-row"><span class="glyph">&#9679;</span> GAS FLARE / NORMAL</div>
+                  <div class="legend-row"><span class="glyph">&#9633;</span> UNKNOWN / REVIEW</div>
+                </div>
+                <div class="legend-group">
+                  <div class="legend-label">OTHER OVERLAYS</div>
+                  <div class="legend-row"><span class="dot facility-dot"></span> FACILITY</div>
+                  <div class="legend-row"><span class="ring"></span> PERSISTENT HOTSPOT</div>
+                  <div class="legend-row"><span class="line"></span> AOI BOUNDARY</div>
+                </div>
+              </div>
+            </section>
+            <section class="panel" id="hotspot-list-panel">
+              <div class="panel-header">
+                HOTSPOTS <span id="hotspot-count">[0]</span>
+                <select id="days-back-select" title="history window">
+                  <option value="1">1d</option>
+                  <option value="3">3d</option>
+                  <option value="7">7d</option>
+                  <option value="14">14d</option>
+                </select>
+              </div>
+              <div class="table-scroll">
+                <table id="hotspot-table">
+                  <thead>
+                    <tr>
+                      <th>RISK</th>
+                      <th>CLASS</th>
+                      <th>FRP</th>
+                      <th>FACILITY</th>
+                      <th>WHEN</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hotspot-table-body"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+          <div id="rail-detail" hidden>
+            <div class="panel-header">
+              <button id="detail-back" class="text-btn">&lt; BACK</button> EVENT DETAIL
+            </div>
+            <div class="panel-body" id="detail-content"></div>
+          </div>
+        </aside>
+      </main>
+      <footer id="statusbar">
+        <span id="status-line">&gt; idle</span>
+      </footer>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
